@@ -1,40 +1,23 @@
 name: workflow
- 
-on: 
+on:
   push:
     branches:
-      - master  # Ou a branch que você está usando
- 
+      - master
+      
 jobs:
   security:
     runs-on: ubuntu-latest
- 
     steps:
       - uses: actions/checkout@master
- 
-      # Instalar dependências
-      - name: Install dependencies
-        run: npm install
- 
-      # Instalar o Snyk
-      - name: Install Snyk
-        run: |
-          curl https://static.snyk.io/cli/latest/snyk-linux -o snyk
-          chmod +x ./snyk
-          mv ./snyk /usr/local/bin/
- 
-      # Configurar o endpoint do Snyk
+
+      - name: Install snyk
+        run: npm install -g snyk
+
       - name: Configure Snyk endpoint
         run: snyk config set endpoint=https://api.us.snyk.io
- 
-      # Autenticar com o Snyk
+
       - name: Authenticate with Snyk
         run: snyk auth ${{ secrets.SNYK_TOKEN }}
- 
-      # Rodar o teste do Snyk para verificar vulnerabilidades
-      - name: Run Snyk test for vulnerabilities
-        run: snyk test --all-projects --org=9d55bfb9-a23a-4296-8aad-e82242bebc9f
- 
-      # Monitorar os projetos com o Snyk
-      - name: Monitor projects with Snyk
-        run: snyk monitor --all-projects --org=9d55bfb9-a23a-4296-8aad-e82242bebc9f
+
+      - name: Run Snyk to check for vulnerabilities
+        uses: snyk/actions/node@master
