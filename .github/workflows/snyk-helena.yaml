@@ -10,6 +10,9 @@ jobs:
     steps:
       - uses: actions/checkout@master
 
+      - name: Instalar dependências
+        run: npm install
+
       - name: Install snyk
         run: npm install -g snyk
 
