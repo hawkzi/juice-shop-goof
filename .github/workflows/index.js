@@ -1,6 +1,4 @@
 // index.js
-npm install
-
 const countWords = require('./wordCounter');
 
 const sentence = "Olá, como você está?";
