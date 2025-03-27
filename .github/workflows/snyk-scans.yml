@@ -36,6 +36,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: snyk/actions/setup@master
+      - name: Configure Snyk endpoint
+        run: snyk config set endpoint=https://api.us.snyk.io
+      - name: Authenticate with Snyk
+        run: snyk auth ${{ secrets.SNYK_TOKEN }}
       - name: Snyk Code Test
         continue-on-error: true
         run: snyk code test 
