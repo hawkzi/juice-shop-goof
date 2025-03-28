@@ -21,11 +21,7 @@ jobs:
 
       - name: Authenticate with Snyk
         run: snyk auth ${{ secrets.SNYK_TOKEN }}
-
-  snyk-code:
-    environment: snyk
-    runs-on: ubuntu-latest
-    steps:
+     
       - uses: actions/checkout@v2
       - uses: snyk/actions/setup@master
       - name: Configure Snyk endpoint
