@@ -28,6 +28,8 @@ jobs:
         run: snyk config set endpoint=https://api.us.snyk.io
       - name: Authenticate with Snyk
         run: snyk auth ${{ secrets.SNYK_TOKEN }}
+      - name: npm install
+        run: npm install
       - name: Snyk Test
         continue-on-error: true
         run: snyk test 
