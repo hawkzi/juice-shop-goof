@@ -1,19 +1,21 @@
-name: workflow
+name: Snyk Security Workflow
+
 on:
   push:
     branches:
       - master
-      
+
 jobs:
-  security:
+  install-and-authenticate:
+    name: Install Dependencies and Authenticate
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v4
 
-      - name: Instalar dependências
+      - name: Install Node.js dependencies
         run: npm install
 
-      - name: Install snyk
+      - name: Install Snyk CLI globally
         run: npm install -g snyk
 
       - name: Configure Snyk endpoint
@@ -23,67 +25,92 @@ jobs:
         run: snyk auth ${{ secrets.SNYK_TOKEN }}
 
   snyk-code:
-    environment: snyk
+    name: Snyk Code Test
+    needs: install-and-authenticate
     runs-on: ubuntu-latest
+    environment: snyk
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - uses: snyk/actions/setup@master
+
       - name: Configure Snyk endpoint
         run: snyk config set endpoint=https://api.us.snyk.io
+
       - name: Authenticate with Snyk
         run: snyk auth ${{ secrets.SNYK_TOKEN }}
-      - name: Snyk Code Test
+
+      - name: Run Snyk Code Test
         continue-on-error: true
-        run: snyk code test 
+        run: snyk code test
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
   snyk-os:
-    environment: snyk
+    name: Snyk Open Source Test
+    needs: install-and-authenticate
     runs-on: ubuntu-latest
+    environment: snyk
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - uses: snyk/actions/setup@master
+
       - name: Configure Snyk endpoint
         run: snyk config set endpoint=https://api.us.snyk.io
+
       - name: Authenticate with Snyk
         run: snyk auth ${{ secrets.SNYK_TOKEN }}
-      - name: Snyk Code Test
+
+      - name: Run Snyk Open Source Test
         continue-on-error: true
-      - name: Monitor dependencies for security issues with Snyk
+        run: snyk test
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      - name: Monitor dependencies for vulnerabilities
         run: snyk monitor
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
   snyk-container:
-    environment: snyk
+    name: Snyk Container Test
+    needs: install-and-authenticate
     runs-on: ubuntu-latest
+    environment: snyk
     steps:
-    - uses: actions/checkout@v4
-    - name: Configure Snyk endpoint
-      run: snyk config set endpoint=https://api.us.snyk.io
-    - name: Authenticate with Snyk
-      run: snyk auth ${{ secrets.SNYK_TOKEN }}
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag boosef-juiceshop:latest
-    - name: Scan and Monitor Docker Vulnerabilities
-      uses: snyk/actions/docker@master
-      env:
-        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-      with:
-        image: boosef-juiceshop:latest
-        command: monitor
+      - uses: actions/checkout@v4
 
-  snyk-iac:
-    environment: snyk
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
       - name: Configure Snyk endpoint
         run: snyk config set endpoint=https://api.us.snyk.io
+
       - name: Authenticate with Snyk
         run: snyk auth ${{ secrets.SNYK_TOKEN }}
-      - name: Run and monitor Snyk to check configuration files for security issues
+
+      - name: Build Docker image
+        run: docker build . --file Dockerfile --tag boosef-juiceshop:latest
+
+      - name: Scan and monitor Docker image for vulnerabilities
+        uses: snyk/actions/docker@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          image: boosef-juiceshop:latest
+          command: monitor
+
+  snyk-iac:
+    name: Snyk IaC Test
+    needs: install-and-authenticate
+    runs-on: ubuntu-latest
+    environment: snyk
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure Snyk endpoint
+        run: snyk config set endpoint=https://api.us.snyk.io
+
+      - name: Authenticate with Snyk
+        run: snyk auth ${{ secrets.SNYK_TOKEN }}
+
+      - name: Check infrastructure as code for security issues
         continue-on-error: true
         uses: snyk/actions/iac@master
         env:
