@@ -2,11 +2,37 @@ name: Snyk Full Platform
 
 on:
   push:
-    branches: [ "master" ]
-  pull_request:
-    branches: [ "master" ]
-
+    branches:
+      - master
+      
 jobs:
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+
+      - name: Instalar dependências
+        run: npm install
+
+      - name: Install snyk
+        run: npm install -g snyk
+
+      - name: Configure Snyk endpoint
+        run: snyk config set endpoint=https://api.us.snyk.io
+
+      - name: Authenticate with Snyk
+        run: snyk auth ${{ secrets.SNYK_TOKEN }}
+
+  snyk-code:
+    environment: snyk
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: snyk/actions/setup@master
+      - name: Configure Snyk endpoint
+        run: snyk config set endpoint=https://api.us.snyk.io
+      - name: Authenticate with Snyk
+        run: snyk auth ${{ secrets.SNYK_TOKEN }}
 
   snyk-os:
     environment: snyk
