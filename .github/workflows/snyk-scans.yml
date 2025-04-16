@@ -1,4 +1,4 @@
-name: Snyk Full Platform 
+name: Snyk Full Platform
 
 on:
   push:
